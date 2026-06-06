@@ -7,6 +7,9 @@ import { longitudeField } from '@/fields/longitude'
 
 export const Trailheads: CollectionConfig = {
   slug: 'trailheads',
+  admin: {
+    useAsTitle: 'trailhead',
+  },
   access: {
     read: () => true,
   },
@@ -15,7 +18,7 @@ export const Trailheads: CollectionConfig = {
   },
   fields: [
     {
-      name: 'name',
+      name: 'trailhead',
       label: 'Trailhead',
       type: 'text',
       required: true,

@@ -71,17 +71,23 @@ export interface Config {
     media: Media;
     objectives: Objective;
     trailheads: Trailhead;
+    itineraries: Itinerary;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    objectives: {
+      itineraries: 'itineraries';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     objectives: ObjectivesSelect<false> | ObjectivesSelect<true>;
     trailheads: TrailheadsSelect<false> | TrailheadsSelect<true>;
+    itineraries: ItinerariesSelect<false> | ItinerariesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -195,6 +201,51 @@ export interface Objective {
     };
     [k: string]: unknown;
   } | null;
+  itineraries?: {
+    docs?: (number | Itinerary)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "itineraries".
+ */
+export interface Itinerary {
+  id: number;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * First day must start at a trailhead. Last day must end at a trailhead.
+   */
+  days: {
+    /**
+     * Required for all days. Must be a trailhead for Day 1.
+     */
+    startingPoint: number | Trailhead;
+    objectives: (number | Objective)[];
+    /**
+     * Required for all days. Must be a trailhead for the last day.
+     */
+    endPoint: number | Trailhead;
+    id?: string | null;
+  }[];
   updatedAt: string;
   createdAt: string;
 }
@@ -204,7 +255,7 @@ export interface Objective {
  */
 export interface Trailhead {
   id: number;
-  name: string;
+  trailhead: string;
   latitude: number;
   longitude: number;
   /**
@@ -268,6 +319,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'trailheads';
         value: number | Trailhead;
+      } | null)
+    | ({
+        relationTo: 'itineraries';
+        value: number | Itinerary;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -363,6 +418,7 @@ export interface ObjectivesSelect<T extends boolean = true> {
   prominence?: T;
   isolation?: T;
   description?: T;
+  itineraries?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -371,11 +427,29 @@ export interface ObjectivesSelect<T extends boolean = true> {
  * via the `definition` "trailheads_select".
  */
 export interface TrailheadsSelect<T extends boolean = true> {
-  name?: T;
+  trailhead?: T;
   latitude?: T;
   longitude?: T;
   elevation?: T;
   description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "itineraries_select".
+ */
+export interface ItinerariesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  days?:
+    | T
+    | {
+        startingPoint?: T;
+        objectives?: T;
+        endPoint?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

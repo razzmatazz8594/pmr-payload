@@ -6,6 +6,9 @@ import { longitudeField } from '@/fields/longitude'
 
 export const Objectives: CollectionConfig = {
   slug: 'objectives',
+  admin: {
+    useAsTitle: 'objective',
+  },
   access: {
     read: () => true,
   },
@@ -37,5 +40,12 @@ export const Objectives: CollectionConfig = {
       max: 24901,
     },
     descriptionField,
+    {
+      name: 'itineraries',
+      label: 'Itineraries',
+      type: 'join',
+      collection: 'itineraries',
+      on: 'days.objectives',
+    },
   ],
 }
