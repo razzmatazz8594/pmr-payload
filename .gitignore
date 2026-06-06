@@ -9,6 +9,8 @@
 /.idea/*
 !/.idea/runConfigurations
 
+/.pnpm-store/**
+
 # testing
 /coverage
 

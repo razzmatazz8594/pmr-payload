@@ -1,0 +1,15 @@
+{
+  "name": "Payload Dev",
+
+  "dockerComposeFile": "../docker-compose.yml",
+
+  "service": "payload",
+
+  "workspaceFolder": "/app",
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  }
+}
