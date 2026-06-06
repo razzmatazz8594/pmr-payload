@@ -1,7 +1,8 @@
 import type { CollectionConfig } from 'payload'
+import { descriptionField } from '@/fields/description'
+import { elevationField, elevationBeforeChangeHook } from '@/fields/elevation'
 import { latitudeField } from '@/fields/latitude'
 import { longitudeField } from '@/fields/longitude'
-import { elevationField, elevationBeforeChangeHook } from '@/fields/elevation'
 
 export const Objectives: CollectionConfig = {
   slug: 'objectives',
@@ -35,5 +36,6 @@ export const Objectives: CollectionConfig = {
       min: 0,
       max: 24901,
     },
+    descriptionField,
   ],
 }
