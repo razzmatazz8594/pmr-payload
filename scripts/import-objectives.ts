@@ -268,7 +268,7 @@ async function main() {
 
   let success = 0
   let skipped = 0
-  let failed = 0
+  const failures: Array<{ name: string; wpId: number; reason: string }> = []
 
   for (const wp of toImport) {
     const mapped = mapObjective(wp)
@@ -283,8 +283,8 @@ async function main() {
       console.log(`  ✅  ${mapped.objective} (WP id: ${wp.id})`)
       success++
     } catch (err) {
-      console.error(`  ❌  ${mapped.objective} (WP id: ${wp.id}):`, (err as Error).message)
-      failed++
+      console.log(`  ❌  ${mapped.objective} (WP id: ${wp.id}) — see failures summary below`)
+      failures.push({ name: mapped.objective, wpId: wp.id, reason: (err as Error).message })
     }
   }
 
@@ -295,9 +295,18 @@ async function main() {
 ${DRY_RUN ? 'Dry run complete (no data written)' : 'Import complete'}
   ${DRY_RUN ? '🔍' : '✅'}  ${DRY_RUN ? 'Would import' : 'Imported'} : ${success}
   ⏭️  Skipped          : ${skipped}
-  ❌  Failed           : ${failed}
+  ❌  Failed           : ${failures.length}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `)
+
+  if (failures.length > 0) {
+    console.log('❌  FAILURES SUMMARY:')
+    for (const f of failures) {
+      console.log(`\n  • ${f.name} (WP id: ${f.wpId})`)
+      console.log(`    ${f.reason}`)
+    }
+    console.log('')
+  }
 
   if (toImport.some((o) => o.achievement?.length)) {
     console.log(`⚠️  NOTE: achievement taxonomy IDs were found on some WordPress objectives.`)
