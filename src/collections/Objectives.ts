@@ -41,6 +41,12 @@ export const Objectives: CollectionConfig = {
     },
     descriptionField,
     {
+      name: 'achievements',
+      type: 'join',
+      collection: 'achievements',
+      on: 'groups.objectives',
+    },
+    {
       name: 'itinerariesList',
       type: 'ui',
       admin: {

@@ -10,6 +10,7 @@ import { Media } from './collections/Media'
 import { Objectives } from './collections/Objectives'
 import { Trailheads } from './collections/Trailheads'
 import { Itineraries } from './collections/Itineraries'
+import { Achievements } from './collections/Achievements'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -21,7 +22,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Objectives, Trailheads, Itineraries],
+  collections: [Objectives, Trailheads, Itineraries, Achievements, Users, Media],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
