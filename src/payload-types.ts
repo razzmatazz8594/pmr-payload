@@ -213,6 +213,8 @@ export interface Achievement {
         id?: string | null;
       }[]
     | null;
+  _wp_id?: number | null;
+  _wp_slug?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -481,6 +483,8 @@ export interface AchievementsSelect<T extends boolean = true> {
         objectives?: T;
         id?: T;
       };
+  _wp_id?: T;
+  _wp_slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }

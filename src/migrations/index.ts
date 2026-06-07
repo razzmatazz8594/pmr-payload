@@ -4,6 +4,7 @@ import * as migration_20260607_084403 from './20260607_084403';
 import * as migration_20260607_172706 from './20260607_172706';
 import * as migration_20260607_182151 from './20260607_182151';
 import * as migration_20260607_184810 from './20260607_184810';
+import * as migration_20260607_185054_add_wp_id_to_achievements from './20260607_185054_add_wp_id_to_achievements';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20260607_184810.up,
     down: migration_20260607_184810.down,
-    name: '20260607_184810'
+    name: '20260607_184810',
+  },
+  {
+    up: migration_20260607_185054_add_wp_id_to_achievements.up,
+    down: migration_20260607_185054_add_wp_id_to_achievements.down,
+    name: '20260607_185054_add_wp_id_to_achievements'
   },
 ];
