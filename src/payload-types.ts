@@ -77,11 +77,7 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {
-    objectives: {
-      itineraries: 'itineraries';
-    };
-  };
+  collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -201,51 +197,6 @@ export interface Objective {
     };
     [k: string]: unknown;
   } | null;
-  itineraries?: {
-    docs?: (number | Itinerary)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "itineraries".
- */
-export interface Itinerary {
-  id: number;
-  title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * First day must start at a trailhead. Last day must end at a trailhead.
-   */
-  days: {
-    /**
-     * Required for all days. Must be a trailhead for Day 1.
-     */
-    startingPoint: number | Trailhead;
-    objectives: (number | Objective)[];
-    /**
-     * Required for all days. Must be a trailhead for the last day.
-     */
-    endPoint: number | Trailhead;
-    id?: string | null;
-  }[];
   updatedAt: string;
   createdAt: string;
 }
@@ -277,6 +228,44 @@ export interface Trailhead {
     };
     [k: string]: unknown;
   } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "itineraries".
+ */
+export interface Itinerary {
+  id: number;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  days: {
+    pointsOfInterest: (
+      | {
+          relationTo: 'trailheads';
+          value: number | Trailhead;
+        }
+      | {
+          relationTo: 'objectives';
+          value: number | Objective;
+        }
+    )[];
+    id?: string | null;
+  }[];
   updatedAt: string;
   createdAt: string;
 }
@@ -418,7 +407,6 @@ export interface ObjectivesSelect<T extends boolean = true> {
   prominence?: T;
   isolation?: T;
   description?: T;
-  itineraries?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -445,9 +433,7 @@ export interface ItinerariesSelect<T extends boolean = true> {
   days?:
     | T
     | {
-        startingPoint?: T;
-        objectives?: T;
-        endPoint?: T;
+        pointsOfInterest?: T;
         id?: T;
       };
   updatedAt?: T;

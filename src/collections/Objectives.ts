@@ -41,11 +41,13 @@ export const Objectives: CollectionConfig = {
     },
     descriptionField,
     {
-      name: 'itineraries',
-      label: 'Itineraries',
-      type: 'join',
-      collection: 'itineraries',
-      on: 'days.objectives',
+      name: 'itinerariesList',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/components/ObjectiveItineraries',
+        },
+      },
     },
   ],
 }
