@@ -142,8 +142,8 @@ export interface Objective {
    * Auto-populated from USGS EPQS using lat/lon.
    */
   elevation?: number | null;
-  prominence?: number | null;
-  isolation?: number | null;
+  prominence_ft?: number | null;
+  isolation_mi?: number | null;
   description?: {
     root: {
       type: string;
@@ -426,8 +426,8 @@ export interface ObjectivesSelect<T extends boolean = true> {
   latitude?: T;
   longitude?: T;
   elevation?: T;
-  prominence?: T;
-  isolation?: T;
+  prominence_ft?: T;
+  isolation_mi?: T;
   description?: T;
   achievements?: T;
   updatedAt?: T;

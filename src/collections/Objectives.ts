@@ -26,14 +26,14 @@ export const Objectives: CollectionConfig = {
     longitudeField(),
     elevationField(),
     {
-      name: 'prominence',
+      name: 'prominence_ft',
       label: 'Prominence (ft)',
       type: 'number',
       min: 0,
       max: 29029,
     },
     {
-      name: 'isolation',
+      name: 'isolation_mi',
       label: 'Isolation (mi)',
       type: 'number',
       min: 0,
