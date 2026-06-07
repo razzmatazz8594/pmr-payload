@@ -164,6 +164,8 @@ export interface Objective {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  _wp_id?: number | null;
+  _wp_slug?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -430,6 +432,8 @@ export interface ObjectivesSelect<T extends boolean = true> {
   isolation_mi?: T;
   description?: T;
   achievements?: T;
+  _wp_id?: T;
+  _wp_slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }

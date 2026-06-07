@@ -47,6 +47,16 @@ export const Objectives: CollectionConfig = {
       on: 'groups.objectives',
     },
     {
+      name: '_wp_id',
+      type: 'number',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
+      name: '_wp_slug',
+      type: 'text',
+      admin: { readOnly: true, position: 'sidebar' },
+    },
+    {
       name: 'itinerariesList',
       type: 'ui',
       admin: {
