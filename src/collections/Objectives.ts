@@ -21,6 +21,7 @@ export const Objectives: CollectionConfig = {
       label: 'Objective',
       type: 'text',
       required: true,
+      unique: true,
     },
     latitudeField(),
     longitudeField(),
