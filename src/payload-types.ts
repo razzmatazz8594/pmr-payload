@@ -282,6 +282,18 @@ export interface Itinerary {
           value: number | Objective;
         }
     )[];
+    /**
+     * Paste or enter GeoJSON for this day's route
+     */
+    itinerary_day_geojson?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
     id?: string | null;
   }[];
   updatedAt: string;
@@ -463,6 +475,7 @@ export interface ItinerariesSelect<T extends boolean = true> {
     | T
     | {
         pointsOfInterest?: T;
+        itinerary_day_geojson?: T;
         id?: T;
       };
   updatedAt?: T;

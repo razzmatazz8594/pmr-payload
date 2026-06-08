@@ -5,6 +5,8 @@ import * as migration_20260607_172706 from './20260607_172706';
 import * as migration_20260607_182151 from './20260607_182151';
 import * as migration_20260607_184810 from './20260607_184810';
 import * as migration_20260607_185054_add_wp_id_to_achievements from './20260607_185054_add_wp_id_to_achievements';
+import * as migration_20260608_182540_add_geojson_to_itineraries from './20260608_182540_add_geojson_to_itineraries';
+import * as migration_20260608_184537_change_geojson_field_from_file_to_json from './20260608_184537_change_geojson_field_from_file_to_json';
 
 export const migrations = [
   {
@@ -40,6 +42,16 @@ export const migrations = [
   {
     up: migration_20260607_185054_add_wp_id_to_achievements.up,
     down: migration_20260607_185054_add_wp_id_to_achievements.down,
-    name: '20260607_185054_add_wp_id_to_achievements'
+    name: '20260607_185054_add_wp_id_to_achievements',
+  },
+  {
+    up: migration_20260608_182540_add_geojson_to_itineraries.up,
+    down: migration_20260608_182540_add_geojson_to_itineraries.down,
+    name: '20260608_182540_add_geojson_to_itineraries',
+  },
+  {
+    up: migration_20260608_184537_change_geojson_field_from_file_to_json.up,
+    down: migration_20260608_184537_change_geojson_field_from_file_to_json.down,
+    name: '20260608_184537_change_geojson_field_from_file_to_json'
   },
 ];

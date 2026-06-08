@@ -29,6 +29,15 @@ export const Itineraries: CollectionConfig = {
           required: true,
           minRows: 1,
         },
+        {
+          name: 'itinerary_day_geojson',
+          label: 'Route (GeoJSON)',
+          type: 'json',
+          required: false,
+          admin: {
+            description: "Paste or enter GeoJSON for this day's route",
+          },
+        },
       ],
     },
   ],
