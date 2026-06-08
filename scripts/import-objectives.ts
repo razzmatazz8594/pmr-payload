@@ -61,7 +61,7 @@ interface PayloadObjective {
   longitude?: number
   prominence_ft?: number
   isolation_mi?: number
-  description?: string
+  description?: object
   _wp_id?: number // stored as metadata so you can re-run safely
   _wp_slug?: string
 }
@@ -85,6 +85,45 @@ function stripHtml(html: string): string {
     .replace(/&#8221;/g, '\u201D')
     .replace(/&nbsp;/g, ' ')
     .trim()
+}
+
+/** Wrap plain text in a Lexical editor JSON structure.
+ *  Each newline-separated paragraph becomes its own Lexical paragraph node. */
+function toLexical(text: string): object | undefined {
+  const cleaned = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()
+  if (!cleaned) return undefined
+
+  const paragraphs = cleaned.split(/\n+/).filter((p) => p.trim())
+
+  return {
+    root: {
+      type: 'root',
+      format: '',
+      indent: 0,
+      version: 1,
+      children: paragraphs.map((para) => ({
+        type: 'paragraph',
+        format: '',
+        indent: 0,
+        version: 1,
+        children: [
+          {
+            type: 'text',
+            format: 0,
+            style: '',
+            mode: 'normal',
+            detail: 0,
+            text: para.trim(),
+            version: 1,
+          },
+        ],
+        direction: 'ltr',
+        textFormat: 0,
+        textStyle: '',
+      })),
+      direction: 'ltr',
+    },
+  }
 }
 
 /** Basic auth header for WordPress */
@@ -201,7 +240,7 @@ function mapObjective(wp: WpObjective): PayloadObjective {
     longitude: wp.acf?.longitude ?? undefined,
     prominence_ft: wp.acf?.prominence_ft ?? undefined,
     isolation_mi: wp.acf?.isolation_mi ?? undefined,
-    description: description || undefined,
+    description: description ? toLexical(description) : undefined,
     _wp_id: wp.id,
     _wp_slug: wp.slug,
   }

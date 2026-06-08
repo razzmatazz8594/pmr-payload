@@ -10,6 +10,9 @@
  * Dry run:
  *   DRY_RUN=true npx tsx scripts/import-achievements.ts
  *
+ * Upsert mode (update existing records instead of skipping):
+ *   UPSERT=true npx tsx scripts/import-achievements.ts
+ *
  * Prerequisites:
  *   - Objectives must already be imported (import-objectives.ts)
  *   - Set in .env.local:
@@ -35,6 +38,7 @@ const PAYLOAD_URL = process.env.PAYLOAD_API_URL ?? 'http://localhost:3000'
 const PAYLOAD_EMAIL = process.env.PAYLOAD_EMAIL ?? ''
 const PAYLOAD_PASS = process.env.PAYLOAD_PASSWORD ?? ''
 const DRY_RUN = process.env.DRY_RUN === 'true'
+const UPSERT = process.env.UPSERT === 'true'
 
 const WP_PER_PAGE = 100
 
@@ -52,13 +56,13 @@ interface WpAchievement {
 
 interface PayloadGroup {
   name: string
-  description?: string
+  description?: object
   objectives: string[] // Payload document IDs
 }
 
 interface PayloadAchievement {
   achievement: string
-  description?: string
+  description?: object
   groups: PayloadGroup[]
   _wp_id?: number
   _wp_slug?: string
@@ -68,10 +72,48 @@ interface PayloadAchievement {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Clean up plain-text descriptions from WP taxonomy terms */
-function cleanDescription(text: string): string | undefined {
-  if (!text) return undefined
-  return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim() || undefined
+/** Wrap plain text in a Lexical editor JSON structure.
+ *  Each newline-separated paragraph becomes its own Lexical paragraph node. */
+function toLexical(text: string): object | undefined {
+  const cleaned = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()
+  if (!cleaned) return undefined
+
+  const paragraphs = cleaned.split(/\n+/).filter((p) => p.trim())
+
+  return {
+    root: {
+      type: 'root',
+      format: '',
+      indent: 0,
+      version: 1,
+      children: paragraphs.map((para) => ({
+        type: 'paragraph',
+        format: '',
+        indent: 0,
+        version: 1,
+        children: [
+          {
+            type: 'text',
+            format: 0,
+            style: '',
+            mode: 'normal',
+            detail: 0,
+            text: para.trim(),
+            version: 1,
+          },
+        ],
+        direction: 'ltr',
+        textFormat: 0,
+        textStyle: '',
+      })),
+      direction: 'ltr',
+    },
+  }
+}
+
+/** Clean up plain-text descriptions — kept for compatibility */
+function cleanDescription(text: string): object | undefined {
+  return toLexical(text)
 }
 
 function wpAuthHeader(): HeadersInit {
@@ -206,11 +248,11 @@ async function buildObjectiveIdMap(token: string): Promise<Map<number, string>> 
 }
 
 // ---------------------------------------------------------------------------
-// Step 5: Check which achievements already exist (by _wp_id)
+// Step 5: Fetch existing achievements — returns map of WP id -> Payload doc id
 // ---------------------------------------------------------------------------
 
-async function fetchExistingWpIds(token: string): Promise<Set<number>> {
-  const existing = new Set<number>()
+async function fetchExistingAchievements(token: string): Promise<Map<number, number>> {
+  const existing = new Map<number, number>()
   let page = 1
 
   while (true) {
@@ -220,11 +262,11 @@ async function fetchExistingWpIds(token: string): Promise<Set<number>> {
     if (!res.ok) break
 
     const data = await res.json()
-    const docs: Array<{ _wp_id?: number }> = data.docs ?? []
+    const docs: Array<{ id: number; _wp_id?: number }> = data.docs ?? []
     if (docs.length === 0) break
 
     for (const doc of docs) {
-      if (doc._wp_id) existing.add(doc._wp_id)
+      if (doc._wp_id) existing.set(doc._wp_id, doc.id)
     }
 
     if (!data.hasNextPage) break
@@ -318,6 +360,26 @@ async function createPayloadAchievement(token: string, payload: PayloadAchieveme
   }
 }
 
+async function patchPayloadAchievement(
+  token: string,
+  payloadDocId: number,
+  payload: PayloadAchievement,
+): Promise<void> {
+  const res = await fetch(`${PAYLOAD_URL}/api/achievements/${payloadDocId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `JWT ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Failed to update "${payload.achievement}" (${res.status}): ${text}`)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -347,7 +409,6 @@ async function main() {
   // Always authenticate with Payload — needed for the objective ID map even in dry run
   let token = ''
   let objectiveIdMap = new Map<number, string>()
-  let existingIds = new Set<number>()
 
   if (!PAYLOAD_EMAIL || !PAYLOAD_PASS) {
     console.error('❌  PAYLOAD_EMAIL and PAYLOAD_PASSWORD env vars are required.')
@@ -357,35 +418,52 @@ async function main() {
   token = await getPayloadToken()
   objectiveIdMap = await buildObjectiveIdMap(token)
 
-  if (!DRY_RUN) {
-    console.log('🔍  Checking for already-imported achievements…')
-    existingIds = await fetchExistingWpIds(token)
-    console.log(`    ${existingIds.size} already imported — will skip duplicates\n`)
-  }
+  console.log('🔍  Checking for existing achievements in Payload…')
+  const existingAchievements = await fetchExistingAchievements(token)
+  console.log(`    ${existingAchievements.size} already imported\n`)
 
-  const toImport = parents.filter((p) => !existingIds.has(p.id))
-  console.log(`📤  ${DRY_RUN ? 'Would import' : 'Importing'} ${toImport.length} achievements…\n`)
+  if (UPSERT) console.log('🔄  UPSERT mode — existing records will be updated\n')
 
-  let success = 0
+  const toCreate = parents.filter((p) => !existingAchievements.has(p.id))
+  const toUpdate = UPSERT ? parents.filter((p) => existingAchievements.has(p.id)) : []
+  const toSkip = !UPSERT ? parents.filter((p) => existingAchievements.has(p.id)) : []
+
+  console.log(
+    `📤  ${DRY_RUN ? 'Would create' : 'Creating'} ${toCreate.length}, ${DRY_RUN ? 'would update' : 'updating'} ${toUpdate.length}, skipping ${toSkip.length}…\n`,
+  )
+
+  let created = 0
+  let updated = 0
   const failures: Array<{ name: string; wpId: number; reason: string }> = []
 
-  for (const parent of toImport) {
+  for (const parent of [...toCreate, ...toUpdate]) {
+    const isUpdate = existingAchievements.has(parent.id)
     const kids = childrenByParent.get(parent.id) ?? []
-    console.log(`\n▶  "${parent.name}" (WP id: ${parent.id}, ${kids.length} child group(s))`)
+    const action = isUpdate ? 'update' : 'create'
+    console.log(
+      `\n▶  "${parent.name}" (WP id: ${parent.id}, ${kids.length} child group(s)) [${action}]`,
+    )
 
     try {
       const mapped = await buildPayloadAchievement(parent, kids, objectiveIdMap)
 
       if (DRY_RUN) {
-        console.log(`  🔍  [DRY RUN] Would create:`)
+        console.log(`  🔍  [DRY RUN] Would ${action}:`)
         console.log('  ' + JSON.stringify(mapped, null, 4).split('\n').join('\n  '))
-        success++
+        isUpdate ? updated++ : created++
         continue
       }
 
-      await createPayloadAchievement(token, mapped)
-      console.log(`  ✅  Created "${mapped.achievement}"`)
-      success++
+      if (isUpdate) {
+        const payloadDocId = existingAchievements.get(parent.id)!
+        await patchPayloadAchievement(token, payloadDocId, mapped)
+        console.log(`  ✅  Updated "${mapped.achievement}"`)
+        updated++
+      } else {
+        await createPayloadAchievement(token, mapped)
+        console.log(`  ✅  Created "${mapped.achievement}"`)
+        created++
+      }
     } catch (err) {
       console.log(`  ❌  "${parent.name}" (WP id: ${parent.id}) — see failures summary below`)
       failures.push({ name: parent.name, wpId: parent.id, reason: (err as Error).message })
@@ -395,9 +473,10 @@ async function main() {
   console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${DRY_RUN ? 'Dry run complete (no data written)' : 'Import complete'}
-  ${DRY_RUN ? '🔍' : '✅'}  ${DRY_RUN ? 'Would import' : 'Imported'} : ${success}
-  ⏭️  Skipped          : ${existingIds.size}
-  ❌  Failed           : ${failures.length}
+  ✅  ${DRY_RUN ? 'Would create' : 'Created'} : ${created}
+  🔄  ${DRY_RUN ? 'Would update' : 'Updated'} : ${updated}
+  ⏭️  Skipped         : ${toSkip.length}
+  ❌  Failed          : ${failures.length}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `)
 
