@@ -246,6 +246,8 @@ export interface Trailhead {
     };
     [k: string]: unknown;
   } | null;
+  _wp_id?: number | null;
+  _wp_slug?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -461,6 +463,8 @@ export interface TrailheadsSelect<T extends boolean = true> {
   longitude?: T;
   elevation?: T;
   description?: T;
+  _wp_id?: T;
+  _wp_slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }
