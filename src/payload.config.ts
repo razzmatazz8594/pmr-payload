@@ -11,6 +11,7 @@ import { Objectives } from './collections/Objectives'
 import { Trailheads } from './collections/Trailheads'
 import { Itineraries } from './collections/Itineraries'
 import { Achievements } from './collections/Achievements'
+import { Campgrounds } from './collections/Campgrounds'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -22,7 +23,15 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Objectives, Trailheads, Itineraries, Achievements, Users, Media],
+  collections: [
+    Achievements,
+    Campgrounds,
+    Itineraries,
+    Objectives,
+    Trailheads,
+    Users,
+    Media,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

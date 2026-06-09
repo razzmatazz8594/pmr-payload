@@ -8,6 +8,7 @@ import * as migration_20260607_185054_add_wp_id_to_achievements from './20260607
 import * as migration_20260608_182540_add_geojson_to_itineraries from './20260608_182540_add_geojson_to_itineraries';
 import * as migration_20260608_184537_change_geojson_field_from_file_to_json from './20260608_184537_change_geojson_field_from_file_to_json';
 import * as migration_20260608_190839_add_wp_import_stuff_to_trailheads from './20260608_190839_add_wp_import_stuff_to_trailheads';
+import * as migration_20260609_161834_add_campgrounds_collection_type from './20260609_161834_add_campgrounds_collection_type';
 
 export const migrations = [
   {
@@ -58,6 +59,11 @@ export const migrations = [
   {
     up: migration_20260608_190839_add_wp_import_stuff_to_trailheads.up,
     down: migration_20260608_190839_add_wp_import_stuff_to_trailheads.down,
-    name: '20260608_190839_add_wp_import_stuff_to_trailheads'
+    name: '20260608_190839_add_wp_import_stuff_to_trailheads',
+  },
+  {
+    up: migration_20260609_161834_add_campgrounds_collection_type.up,
+    down: migration_20260609_161834_add_campgrounds_collection_type.down,
+    name: '20260609_161834_add_campgrounds_collection_type'
   },
 ];

@@ -67,10 +67,11 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    achievements: Achievement;
+    campgrounds: Campground;
+    itineraries: Itinerary;
     objectives: Objective;
     trailheads: Trailhead;
-    itineraries: Itinerary;
-    achievements: Achievement;
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
@@ -84,10 +85,11 @@ export interface Config {
     };
   };
   collectionsSelect: {
+    achievements: AchievementsSelect<false> | AchievementsSelect<true>;
+    campgrounds: CampgroundsSelect<false> | CampgroundsSelect<true>;
+    itineraries: ItinerariesSelect<false> | ItinerariesSelect<true>;
     objectives: ObjectivesSelect<false> | ObjectivesSelect<true>;
     trailheads: TrailheadsSelect<false> | TrailheadsSelect<true>;
-    itineraries: ItinerariesSelect<false> | ItinerariesSelect<true>;
-    achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -128,46 +130,6 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "objectives".
- */
-export interface Objective {
-  id: number;
-  objective: string;
-  latitude: number;
-  longitude: number;
-  /**
-   * Auto-populated from USGS EPQS using lat/lon.
-   */
-  elevation?: number | null;
-  prominence_ft?: number | null;
-  isolation_mi?: number | null;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  achievements?: {
-    docs?: (number | Achievement)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  _wp_id?: number | null;
-  _wp_slug?: string | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -220,11 +182,51 @@ export interface Achievement {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "trailheads".
+ * via the `definition` "objectives".
  */
-export interface Trailhead {
+export interface Objective {
   id: number;
-  trailhead: string;
+  objective: string;
+  latitude: number;
+  longitude: number;
+  /**
+   * Auto-populated from USGS EPQS using lat/lon.
+   */
+  elevation?: number | null;
+  prominence_ft?: number | null;
+  isolation_mi?: number | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  achievements?: {
+    docs?: (number | Achievement)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  _wp_id?: number | null;
+  _wp_slug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campgrounds".
+ */
+export interface Campground {
+  id: number;
+  campground: string;
   latitude: number;
   longitude: number;
   /**
@@ -303,6 +305,39 @@ export interface Itinerary {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "trailheads".
+ */
+export interface Trailhead {
+  id: number;
+  trailhead: string;
+  latitude: number;
+  longitude: number;
+  /**
+   * Auto-populated from USGS EPQS using lat/lon.
+   */
+  elevation?: number | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  _wp_id?: number | null;
+  _wp_slug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -370,20 +405,24 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'objectives';
-        value: number | Objective;
+        relationTo: 'achievements';
+        value: number | Achievement;
       } | null)
     | ({
-        relationTo: 'trailheads';
-        value: number | Trailhead;
+        relationTo: 'campgrounds';
+        value: number | Campground;
       } | null)
     | ({
         relationTo: 'itineraries';
         value: number | Itinerary;
       } | null)
     | ({
-        relationTo: 'achievements';
-        value: number | Achievement;
+        relationTo: 'objectives';
+        value: number | Objective;
+      } | null)
+    | ({
+        relationTo: 'trailheads';
+        value: number | Trailhead;
       } | null)
     | ({
         relationTo: 'users';
@@ -437,17 +476,19 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "objectives_select".
+ * via the `definition` "achievements_select".
  */
-export interface ObjectivesSelect<T extends boolean = true> {
-  objective?: T;
-  latitude?: T;
-  longitude?: T;
-  elevation?: T;
-  prominence_ft?: T;
-  isolation_mi?: T;
+export interface AchievementsSelect<T extends boolean = true> {
+  achievement?: T;
   description?: T;
-  achievements?: T;
+  groups?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        objectives?: T;
+        id?: T;
+      };
   _wp_id?: T;
   _wp_slug?: T;
   updatedAt?: T;
@@ -455,10 +496,10 @@ export interface ObjectivesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "trailheads_select".
+ * via the `definition` "campgrounds_select".
  */
-export interface TrailheadsSelect<T extends boolean = true> {
-  trailhead?: T;
+export interface CampgroundsSelect<T extends boolean = true> {
+  campground?: T;
   latitude?: T;
   longitude?: T;
   elevation?: T;
@@ -487,19 +528,32 @@ export interface ItinerariesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "achievements_select".
+ * via the `definition` "objectives_select".
  */
-export interface AchievementsSelect<T extends boolean = true> {
-  achievement?: T;
+export interface ObjectivesSelect<T extends boolean = true> {
+  objective?: T;
+  latitude?: T;
+  longitude?: T;
+  elevation?: T;
+  prominence_ft?: T;
+  isolation_mi?: T;
   description?: T;
-  groups?:
-    | T
-    | {
-        name?: T;
-        description?: T;
-        objectives?: T;
-        id?: T;
-      };
+  achievements?: T;
+  _wp_id?: T;
+  _wp_slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "trailheads_select".
+ */
+export interface TrailheadsSelect<T extends boolean = true> {
+  trailhead?: T;
+  latitude?: T;
+  longitude?: T;
+  elevation?: T;
+  description?: T;
   _wp_id?: T;
   _wp_slug?: T;
   updatedAt?: T;
